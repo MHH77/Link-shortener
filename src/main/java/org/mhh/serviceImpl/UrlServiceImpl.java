@@ -1,7 +1,7 @@
 package org.mhh.serviceImpl;
 
 import lombok.AllArgsConstructor;
-import org.mhh.domain.dto.UrlDTO;
+import org.mhh.dto.UrlDTO;
 import org.mhh.mapper.UrlMapper;
 import org.mhh.service.UrlService;
 import org.mhh.domain.Urls;

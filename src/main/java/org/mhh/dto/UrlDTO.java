@@ -1,4 +1,4 @@
-package org.mhh.domain.dto;
+package org.mhh.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
