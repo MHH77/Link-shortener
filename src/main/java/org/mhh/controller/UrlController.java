@@ -4,10 +4,9 @@ import lombok.AllArgsConstructor;
 import org.mhh.domain.Urls;
 import org.mhh.dto.UrlDTO;
 import org.mhh.service.UrlService;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @AllArgsConstructor
@@ -17,7 +16,13 @@ public class UrlController {
     private UrlService urlService;
 
     @PostMapping
-    public Urls createUser(@RequestBody UrlDTO urlDTO) {
+    public Urls createUrls(@RequestBody UrlDTO urlDTO) {
         return urlService.createUrl(urlDTO);
     }
+
+    @GetMapping
+    public List<Urls> createUser() {
+        return urlService.getUrls();
+    }
+
 }

@@ -8,6 +8,8 @@ import org.mhh.domain.Urls;
 import org.mhh.repository.UrlRepository;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
 @AllArgsConstructor
 public class UrlServiceImpl implements UrlService {
@@ -19,5 +21,10 @@ public class UrlServiceImpl implements UrlService {
     public Urls createUrl(UrlDTO urls) {
         Urls urls1 = urlMapper.UrlDTOToUrls(urls);
         return urlRepository.save(urls1);
+    }
+
+    @Override
+    public List<Urls> getUrls() {
+        return urlRepository.findAll();
     }
 }
