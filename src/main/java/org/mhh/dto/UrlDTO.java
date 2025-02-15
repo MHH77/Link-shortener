@@ -8,7 +8,6 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class UrlDTO {
-    private String shortUrl;
     private String longUrl;
 
 }

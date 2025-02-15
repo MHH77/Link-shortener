@@ -4,6 +4,8 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.ZonedDateTime;
+
 @Entity
 @Data
 @NoArgsConstructor
@@ -15,4 +17,6 @@ public class Urls {
     private Long id;
     private String shortUrl;
     private String longUrl;
+    private ZonedDateTime expirationDate;
+    private int clickCount;
 }
