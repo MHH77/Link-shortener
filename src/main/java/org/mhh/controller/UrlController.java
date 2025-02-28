@@ -24,4 +24,9 @@ public class UrlController {
     public List<Urls> getAllUrls() {
         return urlService.getUrls();
     }
+
+    @GetMapping("/short")
+    public String getShortUrl(@RequestParam String originalUrl) {
+        return urlService.getShortUrlFromOriginal(originalUrl);
+    }
 }

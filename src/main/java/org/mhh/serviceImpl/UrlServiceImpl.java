@@ -30,6 +30,13 @@ public class UrlServiceImpl implements UrlService {
         return urlRepository.findAll();
     }
 
+    @Override
+    public String getShortUrlFromOriginal(String shortUrl) {
+        Urls url = urlRepository.findByShortUrl(shortUrl)
+                .orElseThrow(() -> new RuntimeException("Short URL not found."));
+        return url.getOriginalUrl();
+    }
+
     private String generateShortUrl() {
         String characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
         StringBuilder shortUrl = new StringBuilder();
@@ -40,6 +47,5 @@ public class UrlServiceImpl implements UrlService {
         }
         return shortUrl.toString();
     }
-
 
 }

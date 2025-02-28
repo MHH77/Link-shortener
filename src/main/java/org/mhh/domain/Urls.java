@@ -16,7 +16,7 @@ public class Urls {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     private String shortUrl;
-    private String longUrl;
+    private String originalUrl;
     private ZonedDateTime expirationDate;
     private int clickCount;
 }
