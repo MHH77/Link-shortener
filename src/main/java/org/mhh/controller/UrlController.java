@@ -13,16 +13,15 @@ import java.util.List;
 @RequestMapping("/api/url")
 public class UrlController {
 
-    private UrlService urlService;
+    private final UrlService urlService;
 
-    @PostMapping
+    @PostMapping("/create")
     public Urls createUrls(@RequestBody UrlDTO urlDTO) {
         return urlService.createUrl(urlDTO);
     }
 
-    @GetMapping
-    public List<Urls> createUser() {
+    @GetMapping("/all")
+    public List<Urls> getAllUrls() {
         return urlService.getUrls();
     }
-
 }
