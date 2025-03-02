@@ -21,7 +21,7 @@ public class UrlServiceImpl implements UrlService {
     @Override
     public Urls createUrl(UrlDTO urlsDto) {
         Urls url = urlMapper.UrlDTOToUrls(urlsDto);
-        url.setShortUrl(generateShortUrl());
+        url.setShortUrl(generateUniqueShortUrl());
         return urlRepository.save(url);
     }
 
@@ -46,6 +46,18 @@ public class UrlServiceImpl implements UrlService {
             shortUrl.append(characters.charAt(random.nextInt(characters.length())));
         }
         return shortUrl.toString();
+    }
+
+    private String generateUniqueShortUrl() {
+        String shortUrl;
+        boolean exists;
+
+        do {
+            shortUrl = generateShortUrl();
+            exists = urlRepository.existsByShortUrl(shortUrl);
+        } while (exists);
+
+        return shortUrl;
     }
 
 }
