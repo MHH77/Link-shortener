@@ -9,6 +9,7 @@ import org.mhh.repository.UrlRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.Random;
 
 @Service
@@ -20,6 +21,10 @@ public class UrlServiceImpl implements UrlService {
 
     @Override
     public Urls createUrl(UrlDTO urlsDto) {
+        Optional<Urls> existingUrl = urlRepository.findByOriginalUrl(urlsDto.getOriginalUrl());
+        if (existingUrl.isPresent()) {
+            return existingUrl.get();
+        }
         Urls url = urlMapper.UrlDTOToUrls(urlsDto);
         url.setShortUrl(generateUniqueShortUrl());
         return urlRepository.save(url);
