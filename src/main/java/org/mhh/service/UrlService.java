@@ -7,6 +7,11 @@ import java.util.List;
 
 public interface UrlService {
     Urls createUrl(UrlDTO urls);
+
     List<Urls> getUrls();
+
     String getShortUrlFromOriginal(String shortUrl);
+
+    void deleteShortUrl(String shortUrl);
+
 }

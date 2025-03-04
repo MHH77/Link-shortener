@@ -32,5 +32,9 @@ public class UrlController {
     public ResponseEntity<String> getShortUrl(@RequestParam String originalUrl) {
         return ResponseEntity.ok(urlService.getShortUrlFromOriginal(originalUrl));
     }
-
+    @DeleteMapping("/{shortUrl}")
+    public ResponseEntity<Void> deleteShortUrl(@PathVariable String shortUrl) {
+        urlService.deleteShortUrl(shortUrl);
+        return ResponseEntity.noContent().build();
+    }
 }

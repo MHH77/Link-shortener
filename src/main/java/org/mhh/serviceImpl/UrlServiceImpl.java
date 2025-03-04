@@ -42,6 +42,13 @@ public class UrlServiceImpl implements UrlService {
         return url.getOriginalUrl();
     }
 
+    @Override
+    public void deleteShortUrl(String shortUrl) {
+        Urls url = urlRepository.findByShortUrl(shortUrl)
+                .orElseThrow(() -> new RuntimeException("Short URL not found."));
+        urlRepository.delete(url);
+    }
+
     private String generateShortUrl() {
         String characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
         StringBuilder shortUrl = new StringBuilder();
