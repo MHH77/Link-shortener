@@ -1,19 +1,19 @@
 package org.mhh.mapper;
 
 import org.mapstruct.Mapper;
-import org.mhh.domain.Urls;
+import org.mhh.domain.Url;
 import org.mhh.dto.UrlDTO;
 
 import java.util.List;
 
 @Mapper(componentModel = "spring")
 public interface UrlMapper {
-    UrlDTO UrlsToUrlDTO(Urls url);
+    UrlDTO UrlsToUrlDTO(Url url);
 
-    Urls UrlDTOToUrls(UrlDTO urlDTO);
+    Url UrlDTOToUrls(UrlDTO urlDTO);
 
-    List<UrlDTO> urlsToUrlDTOs(List<Urls> urls);
+    List<UrlDTO> urlsToUrlDTOs(List<Url> urls);
 
-    List<Urls> urlDTOsToUrls(List<UrlDTO> urlDTOs);
+    List<Url> urlDTOsToUrls(List<UrlDTO> urlDTOs);
 
 }

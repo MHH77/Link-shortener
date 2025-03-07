@@ -11,7 +11,7 @@ import java.time.ZonedDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Table(name = "url")
-public class Urls {
+public class Url {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;

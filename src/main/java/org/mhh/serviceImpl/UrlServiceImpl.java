@@ -4,7 +4,7 @@ import lombok.AllArgsConstructor;
 import org.mhh.dto.UrlDTO;
 import org.mhh.mapper.UrlMapper;
 import org.mhh.service.UrlService;
-import org.mhh.domain.Urls;
+import org.mhh.domain.Url;
 import org.mhh.repository.UrlRepository;
 import org.springframework.stereotype.Service;
 
@@ -20,31 +20,31 @@ public class UrlServiceImpl implements UrlService {
     private final UrlMapper urlMapper;
 
     @Override
-    public Urls createUrl(UrlDTO urlsDto) {
-        Optional<Urls> existingUrl = urlRepository.findByOriginalUrl(urlsDto.getOriginalUrl());
+    public Url createUrl(UrlDTO urlsDto) {
+        Optional<Url> existingUrl = urlRepository.findByOriginalUrl(urlsDto.getOriginalUrl());
         if (existingUrl.isPresent()) {
             return existingUrl.get();
         }
-        Urls url = urlMapper.UrlDTOToUrls(urlsDto);
+        Url url = urlMapper.UrlDTOToUrls(urlsDto);
         url.setShortUrl(generateUniqueShortUrl());
         return urlRepository.save(url);
     }
 
     @Override
-    public List<Urls> getUrls() {
+    public List<Url> getUrls() {
         return urlRepository.findAll();
     }
 
     @Override
-    public String getShortUrlFromOriginal(String shortUrl) {
-        Urls url = urlRepository.findByShortUrl(shortUrl)
+    public String getOriginalUrlFromShortUrl (String shortUrl) {
+        Url url = urlRepository.findByShortUrl(shortUrl)
                 .orElseThrow(() -> new RuntimeException("Short URL not found."));
         return url.getOriginalUrl();
     }
 
     @Override
     public void deleteShortUrl(String shortUrl) {
-        Urls url = urlRepository.findByShortUrl(shortUrl)
+        Url url = urlRepository.findByShortUrl(shortUrl)
                 .orElseThrow(() -> new RuntimeException("Short URL not found."));
         urlRepository.delete(url);
     }

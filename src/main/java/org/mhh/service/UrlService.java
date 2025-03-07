@@ -1,16 +1,16 @@
 package org.mhh.service;
 
-import org.mhh.domain.Urls;
+import org.mhh.domain.Url;
 import org.mhh.dto.UrlDTO;
 
 import java.util.List;
 
 public interface UrlService {
-    Urls createUrl(UrlDTO urls);
+    Url createUrl(UrlDTO urls);
 
-    List<Urls> getUrls();
+    List<Url> getUrls();
 
-    String getShortUrlFromOriginal(String shortUrl);
+    String getOriginalUrlFromShortUrl (String shortUrl);
 
     void deleteShortUrl(String shortUrl);
 
