@@ -2,6 +2,7 @@ package org.mhh.serviceImpl;
 
 import lombok.AllArgsConstructor;
 import org.mhh.dto.UrlDTO;
+import org.mhh.exception.UrlNotFoundException;
 import org.mhh.mapper.UrlMapper;
 import org.mhh.service.UrlService;
 import org.mhh.domain.Url;
@@ -38,14 +39,14 @@ public class UrlServiceImpl implements UrlService {
     @Override
     public String getOriginalUrlFromShortUrl (String shortUrl) {
         Url url = urlRepository.findByShortUrl(shortUrl)
-                .orElseThrow(() -> new RuntimeException("Short URL not found."));
+                .orElseThrow(() -> new UrlNotFoundException("Short URL not found: " + shortUrl));
         return url.getOriginalUrl();
     }
 
     @Override
     public void deleteShortUrl(String shortUrl) {
         Url url = urlRepository.findByShortUrl(shortUrl)
-                .orElseThrow(() -> new RuntimeException("Short URL not found."));
+                .orElseThrow(() -> new UrlNotFoundException("Short URL not found: " + shortUrl));
         urlRepository.delete(url);
     }
 
