@@ -9,5 +9,6 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class UrlDTO {
     private String originalUrl;
+    private String shortCode;
 
 }

@@ -7,8 +7,14 @@ import org.springframework.stereotype.Repository;
 import java.util.Optional;
 
 @Repository
-public interface UrlRepository extends JpaRepository<Url,Long> {
+public interface UrlRepository extends JpaRepository<Url, Long> {
     Optional<Url> findByShortUrl(String shortUrl);
+
     boolean existsByShortUrl(String shortUrl);
+
     Optional<Url> findByOriginalUrl(String originalUrl);
+
+    Optional<Url> findByShortCode(String shortId);
+
+    void deleteByShortCode(String shortId);
 }

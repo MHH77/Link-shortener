@@ -1,6 +1,7 @@
 package org.mhh.serviceImpl;
 
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.mhh.dto.UrlDTO;
 import org.mhh.exception.UrlNotFoundException;
 import org.mhh.mapper.UrlMapper;
@@ -14,6 +15,7 @@ import java.util.Optional;
 import java.util.Random;
 
 @Service
+@Slf4j
 @AllArgsConstructor
 public class UrlServiceImpl implements UrlService {
 
@@ -37,7 +39,7 @@ public class UrlServiceImpl implements UrlService {
     }
 
     @Override
-    public String getOriginalUrlFromShortUrl (String shortUrl) {
+    public String getOriginalUrlFromShortUrl(String shortUrl) {
         Url url = urlRepository.findByShortUrl(shortUrl)
                 .orElseThrow(() -> new UrlNotFoundException("Short URL not found: " + shortUrl));
         return url.getOriginalUrl();

@@ -19,4 +19,5 @@ public class Url {
     private String originalUrl;
     private ZonedDateTime expirationDate;
     private int clickCount;
+    private String shortCode;
 }
