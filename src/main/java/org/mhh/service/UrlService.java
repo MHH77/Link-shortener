@@ -1,17 +1,16 @@
 package org.mhh.service;
 
 import org.mhh.domain.Url;
-import org.mhh.dto.UrlDTO;
+import org.mhh.dto.CreateUrlRequest;
 
-import java.util.List;
 
 public interface UrlService {
-    Url createUrl(UrlDTO urls);
 
-    List<Url> getUrls();
+    Url createUrl(CreateUrlRequest request);
 
-    String getOriginalUrlFromShortUrl (String shortUrl);
+    Url findByShortCode(String shortCode);
 
-    void deleteShortUrl(String shortUrl);
+    String getOriginalUrlAndTrackClick(String shortCode);
 
+    void deleteByShortCode(String shortCode);
 }
