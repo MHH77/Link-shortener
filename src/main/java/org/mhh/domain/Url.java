@@ -15,9 +15,10 @@ public class Url {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    private String shortUrl;
+    @Column(length = 2048)
     private String originalUrl;
     private ZonedDateTime expirationDate;
     private int clickCount;
+    @Column(unique = true)
     private String shortCode;
 }
