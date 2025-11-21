@@ -1,38 +1,25 @@
 package org.mhh.exception;
 
-class ErrorResponse {
+import com.fasterxml.jackson.annotation.JsonFormat;
+import lombok.Data;
+
+import java.time.LocalDateTime;
+
+@Data
+public class ErrorResponse {
+
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
+    private LocalDateTime timestamp;
     private int status;
+    private String error;
     private String message;
-    private String details; // Optional: To include more details about the error
+    private String path;
 
-    public ErrorResponse(int status, String message, String details) {
+    public ErrorResponse(int status, String error, String message, String path) {
+        this.timestamp = LocalDateTime.now();
         this.status = status;
+        this.error = error;
         this.message = message;
-        this.details = details;
-    }
-
-    // Getters and setters (or use Lombok)
-    public int getStatus() {
-        return status;
-    }
-
-    public void setStatus(int status) {
-        this.status = status;
-    }
-
-    public String getMessage() {
-        return message;
-    }
-
-    public void setMessage(String message) {
-        this.message = message;
-    }
-
-    public String getDetails() {
-        return details;
-    }
-
-    public void setDetails(String details) {
-        this.details = details;
+        this.path = path;
     }
 }
