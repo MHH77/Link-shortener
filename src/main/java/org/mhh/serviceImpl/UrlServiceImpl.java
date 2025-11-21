@@ -3,6 +3,7 @@ package org.mhh.serviceImpl;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.mhh.dto.CreateUrlRequest;
+import org.mhh.exception.DuplicateUrlException;
 import org.mhh.exception.UrlNotFoundException;
 import org.mhh.service.UrlService;
 import org.mhh.domain.Url;
@@ -29,8 +30,9 @@ public class UrlServiceImpl implements UrlService {
     public Url createUrl(CreateUrlRequest request) {
         Optional<Url> existingUrl = urlRepository.findByOriginalUrl(request.getOriginalUrl());
         if (existingUrl.isPresent()) {
-            log.info("URL '{}' already exists. Returning existing entry.", request.getOriginalUrl());
-            return existingUrl.get();
+            throw new DuplicateUrlException(
+                    "The URL '" + request.getOriginalUrl() + "' has already been shortened. The short code is: " + existingUrl.get().getShortCode()
+            );
         }
 
         Url newUrl = new Url();
