@@ -17,8 +17,8 @@ public class Url {
     private Long id;
     @Column(length = 2048)
     private String originalUrl;
-    private ZonedDateTime expirationDate;
-    private int clickCount;
+    @Column(name = "expiration_date")
+    private ZonedDateTime expirationDate;    private int clickCount;
     @Column(unique = true)
     private String shortCode;
 }
