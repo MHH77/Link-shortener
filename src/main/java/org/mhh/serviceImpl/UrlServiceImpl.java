@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.mhh.dto.CreateUrlRequest;
 import org.mhh.exception.DuplicateUrlException;
+import org.mhh.exception.LinkExpiredException;
 import org.mhh.exception.UrlNotFoundException;
 import org.mhh.service.UrlService;
 import org.mhh.domain.Url;
@@ -13,6 +14,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.ZonedDateTime;
 import java.util.Optional;
 
 @Service
@@ -29,6 +31,7 @@ public class UrlServiceImpl implements UrlService {
     @Transactional
     public Url createUrl(CreateUrlRequest request) {
         Optional<Url> existingUrl = urlRepository.findByOriginalUrl(request.getOriginalUrl());
+
         if (existingUrl.isPresent()) {
             throw new DuplicateUrlException(
                     "The URL '" + request.getOriginalUrl() + "' has already been shortened. The short code is: " + existingUrl.get().getShortCode()
@@ -37,6 +40,7 @@ public class UrlServiceImpl implements UrlService {
 
         Url newUrl = new Url();
         newUrl.setOriginalUrl(request.getOriginalUrl());
+        newUrl.setExpirationDate(request.getExpirationDate());
         newUrl.setClickCount(0);
 
         Url savedUrl = urlRepository.save(newUrl);
@@ -54,9 +58,14 @@ public class UrlServiceImpl implements UrlService {
     }
 
     @Override
-    @Transactional
+    @Transactional(readOnly = true)
     public String getOriginalUrlAndTrackClick(String shortCode) {
         Url url = findByShortCode(shortCode);
+
+        if (url.getExpirationDate() != null && url.getExpirationDate().isBefore(ZonedDateTime.now())) {
+            log.warn("Attempted to access expired short code '{}' for URL '{}'", shortCode, url.getOriginalUrl());
+            throw new LinkExpiredException("This link has expired on " + url.getExpirationDate());
+        }
 
         url.setClickCount(url.getClickCount() + 1);
         urlRepository.save(url);
