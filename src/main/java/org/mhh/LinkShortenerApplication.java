@@ -8,7 +8,7 @@ import org.springframework.scheduling.annotation.EnableAsync;
 @EnableAsync
 public class LinkShortenerApplication  {
 
-    public static void main(String[] args) {
+    public static void main(String[] args)  {
         SpringApplication.run(LinkShortenerApplication .class, args);
     }
 }
