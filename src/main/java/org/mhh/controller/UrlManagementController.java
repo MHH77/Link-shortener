@@ -17,7 +17,7 @@ import org.mhh.service.UrlService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.ErrorResponse;
+import org.mhh.exception.ErrorResponse;
 import org.springframework.web.bind.annotation.*;
 
 
@@ -45,9 +45,12 @@ public class UrlManagementController {
             @Parameter(description = "The original URL to be shortened", required = true)
             @Valid @RequestBody CreateUrlRequest request) {
 
-        Url createdUrl = urlService.createUrl(request);
+        UrlService.CreatedLink created = urlService.createUrl(request);
 
-        return ResponseEntity.status(HttpStatus.CREATED).body(buildUrlResponse(createdUrl));
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .header("X-Management-Token", created.managementToken())
+                .cacheControl(org.springframework.http.CacheControl.noStore())
+                .body(buildUrlResponse(created.url()));
     }
 
     @GetMapping("/{shortCode}")
@@ -75,9 +78,10 @@ public class UrlManagementController {
     })
     public ResponseEntity<Void> deleteShortUrl(
             @Parameter(description = "The short code to delete", required = true)
-            @PathVariable String shortCode) {
+            @PathVariable String shortCode,
+            @RequestHeader(value = "X-Management-Token", required = false) String token) {
 
-        urlService.deleteByShortCode(shortCode);
+        urlService.deleteByShortCode(shortCode, token);
 
         return ResponseEntity.noContent().build();
     }

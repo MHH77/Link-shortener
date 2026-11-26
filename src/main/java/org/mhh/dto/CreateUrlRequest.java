@@ -3,7 +3,8 @@ package org.mhh.dto;
 import jakarta.validation.constraints.Future;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
-import org.hibernate.validator.constraints.URL;
+import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Size;
 
 import java.time.ZonedDateTime;
 
@@ -15,8 +16,11 @@ import java.time.ZonedDateTime;
 public class CreateUrlRequest {
 
     @NotBlank(message = "Original URL cannot be empty.")
-    @URL(message = "A valid URL format is required.")
+    @Size(max = 2048)
     private String originalUrl;
+
+    @Pattern(regexp = "[a-z0-9][a-z0-9-]{2,39}", message = "Use 3 to 40 lowercase letters, digits or hyphens, starting with a letter or digit.")
+    private String alias;
 
     @Future(message = "Expiration date must be in the future.")
     private ZonedDateTime expirationDate;

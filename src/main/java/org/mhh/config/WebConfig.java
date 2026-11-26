@@ -11,7 +11,8 @@ public class WebConfig implements WebMvcConfigurer {
     public void addCorsMappings(CorsRegistry registry) {
         registry.addMapping("/api/**")
                 .allowedOrigins("http://localhost:3000") // آدرس React
-                .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS");
+                .exposedHeaders("X-Management-Token")
+                .allowedMethods("GET", "POST", "DELETE", "OPTIONS");
     }
 
     @Override

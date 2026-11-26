@@ -6,11 +6,13 @@ import org.mhh.dto.CreateUrlRequest;
 
 public interface UrlService {
 
-    Url createUrl(CreateUrlRequest request);
+    record CreatedLink(Url url, String managementToken) {}
+
+    CreatedLink createUrl(CreateUrlRequest request);
 
     Url findByShortCode(String shortCode);
 
     String getOriginalUrlAndTrackClick(String shortCode);
 
-    void deleteByShortCode(String shortCode);
+    void deleteByShortCode(String shortCode, String managementToken);
 }

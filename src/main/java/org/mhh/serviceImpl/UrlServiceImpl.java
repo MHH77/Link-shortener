@@ -15,7 +15,16 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.net.URI;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.time.ZonedDateTime;
+import java.util.HexFormat;
+import java.util.UUID;
+import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.server.ResponseStatusException;
 import java.util.Optional;
 
 @Service
@@ -31,7 +40,8 @@ public class UrlServiceImpl implements UrlService {
 
     @Override
     @Transactional
-    public Url createUrl(CreateUrlRequest request) {
+    public CreatedLink createUrl(CreateUrlRequest request) {
+        validateDestination(request.getOriginalUrl());
         Optional<Url> existingUrl = urlRepository.findByOriginalUrl(request.getOriginalUrl());
 
         if (existingUrl.isPresent()) {
@@ -41,17 +51,49 @@ public class UrlServiceImpl implements UrlService {
         }
 
         Url newUrl = new Url();
+        String token = UUID.randomUUID().toString();
+        newUrl.setManagementTokenHash(hashToken(token));
+        if (request.getAlias() != null) {
+            newUrl.setShortCode("@" + request.getAlias());
+        }
         newUrl.setOriginalUrl(request.getOriginalUrl());
         newUrl.setExpirationDate(request.getExpirationDate());
         newUrl.setClickCount(0);
 
-        Url savedUrl = urlRepository.save(newUrl);
+        try {
+            Url savedUrl = urlRepository.saveAndFlush(newUrl);
+            if (savedUrl.getShortCode() == null) {
+                savedUrl.setShortCode(Base62Encoder.encode(savedUrl.getId() + idOffset));
+            }
+            return new CreatedLink(savedUrl, token);
+        } catch (DataIntegrityViolationException ex) {
+            if (ex.getMostSpecificCause() instanceof java.sql.SQLException sql
+                    && "23505".equals(sql.getSQLState())) {
+                throw new DuplicateUrlException("That destination or alias is already in use.");
+            }
+            throw ex;
+        }
+    }
 
-        long effectiveId = savedUrl.getId() + idOffset;
-        String shortCode = Base62Encoder.encode(effectiveId);
+    private static void validateDestination(String value) {
+        try {
+            URI uri = URI.create(value);
+            if (("http".equalsIgnoreCase(uri.getScheme()) || "https".equalsIgnoreCase(uri.getScheme()))
+                    && uri.getHost() != null && uri.getRawUserInfo() == null && uri.getPort() <= 65535) {
+                return;
+            }
+        } catch (IllegalArgumentException ignored) {
+        }
+        throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Use an absolute HTTP or HTTPS URL without credentials.");
+    }
 
-        savedUrl.setShortCode(shortCode);
-        return urlRepository.save(savedUrl);
+    private static String hashToken(String token) {
+        try {
+            return HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256")
+                    .digest(token.getBytes(StandardCharsets.UTF_8)));
+        } catch (NoSuchAlgorithmException ex) {
+            throw new IllegalStateException(ex);
+        }
     }
     @Override
     public Url findByShortCode(String shortCode) {
@@ -76,11 +118,12 @@ public class UrlServiceImpl implements UrlService {
 
     @Override
     @Transactional
-    public void deleteByShortCode(String shortCode) {
-        if (!urlRepository.existsByShortCode(shortCode)) {
-            throw new UrlNotFoundException("Cannot delete. Short code not found: " + shortCode);
+    public void deleteByShortCode(String shortCode, String token) {
+        Url url = findByShortCode(shortCode);
+        if (token == null || !hashToken(token).equals(url.getManagementTokenHash())) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "A valid management token is required.");
         }
-        urlRepository.delete(urlRepository.findByShortCode(shortCode).get());
+        urlRepository.delete(url);
         log.info("Successfully deleted URL with short code: {}", shortCode);
     }
 }

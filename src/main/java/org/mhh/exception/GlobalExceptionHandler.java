@@ -49,9 +49,15 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
     }
 
-    @ExceptionHandler(Exception.class)
-    public ResponseEntity<ErrorResponse> handleGenericException(Exception ex, WebRequest request) {
-        ex.printStackTrace();
+    @ExceptionHandler(LinkExpiredException.class)
+    public ResponseEntity<ErrorResponse> handleExpired(LinkExpiredException ex, WebRequest request) {
+        return ResponseEntity.status(HttpStatus.GONE).body(new ErrorResponse(
+                410, "Gone", ex.getMessage(), request.getDescription(false).replace("uri=", "")));
+    }
+
+    @ExceptionHandler(org.springframework.dao.DataAccessException.class)
+    public ResponseEntity<ErrorResponse> handleDatabaseFailure(Exception ex, WebRequest request) {
+        org.slf4j.LoggerFactory.getLogger(getClass()).error("Database operation failed", ex);
 
         ErrorResponse errorResponse = new ErrorResponse(
                 HttpStatus.INTERNAL_SERVER_ERROR.value(),
