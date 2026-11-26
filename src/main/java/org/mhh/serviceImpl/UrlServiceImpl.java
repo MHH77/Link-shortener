@@ -65,6 +65,7 @@ public class UrlServiceImpl implements UrlService {
             if (savedUrl.getShortCode() == null) {
                 savedUrl.setShortCode(Base62Encoder.encode(savedUrl.getId() + idOffset));
             }
+            log.info("event=link_created linkId={} customAlias={}", savedUrl.getId(), request.getAlias() != null);
             return new CreatedLink(savedUrl, token);
         } catch (DataIntegrityViolationException ex) {
             if (ex.getMostSpecificCause() instanceof java.sql.SQLException sql
@@ -106,8 +107,11 @@ public class UrlServiceImpl implements UrlService {
     public String getOriginalUrlAndTrackClick(String shortCode) {
         Url url = findByShortCode(shortCode);
 
+        if (url.getModerationState() == org.mhh.domain.ModerationState.DISABLED) {
+            throw new ResponseStatusException(HttpStatus.GONE, "Link disabled");
+        }
         if (url.getExpirationDate() != null && url.getExpirationDate().isBefore(ZonedDateTime.now())) {
-            log.warn("Attempted to access expired short code '{}' for URL '{}'", shortCode, url.getOriginalUrl());
+            log.debug("event=redirect_expired linkId={}", url.getId());
             throw new LinkExpiredException("This link has expired on " + url.getExpirationDate());
         }
 
@@ -124,6 +128,6 @@ public class UrlServiceImpl implements UrlService {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "A valid management token is required.");
         }
         urlRepository.delete(url);
-        log.info("Successfully deleted URL with short code: {}", shortCode);
+        log.info("event=link_deleted linkId={}", url.getId());
     }
 }

@@ -22,6 +22,8 @@ public class Url {
     private int clickCount;
     @Column(length = 64)
     private String managementTokenHash;
+    @Enumerated(EnumType.STRING)
+    private ModerationState moderationState;
     @Column(unique = true)
     private String shortCode;
 }

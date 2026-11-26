@@ -22,3 +22,19 @@ Links created before management tokens were introduced remain readable. They can
 be deleted through the public API; an administrator must manage those records.
 Before upgrading an existing H2 database, back it up and resolve any duplicate
 original URLs so the unique constraint can be applied.
+
+Anonymous creation and abuse reports share a quota of 30 POST attempts per
+client address per calendar minute. Set `WRITES_PER_MINUTE` to change it.
+A rejected request returns 429 and a `Retry-After` duration in seconds.
+The quota is local to one process, resets on restart, and uses the servlet
+remote address. Behind a proxy, configure quotas at the trusted edge; otherwise
+clients behind that proxy can share one allowance.
+
+Report a link with `POST /api/v1/urls/{code}/reports`. Multiple reports create
+one pending item. Reporting does not disable the link. Configure a random
+`MODERATOR_TOKEN` in the server environment and use HTTPS. With the token in
+the `X-Moderator-Token` header, list pending codes using
+`GET /api/v1/moderation/reports?page=0` (50 per page). Review with
+`PUT /api/v1/moderation/links/{code}?disabled=true`; use `false` to dismiss
+or restore. Disabled redirects return 410 without recording clicks. With no
+configured token, moderator operations are unavailable.

@@ -13,6 +13,12 @@ public interface UrlRepository extends JpaRepository<Url, Long> {
     int incrementClickCount(Long id);
 
     Optional<Url> findByShortCode(String shortCode);
+    @org.springframework.data.jpa.repository.Lock(jakarta.persistence.LockModeType.PESSIMISTIC_WRITE)
+    @Query("select link from Url link where link.shortCode = ?1")
+    Optional<Url> lockByShortCode(String code);
+
+    @Query("select link.shortCode from Url link where link.moderationState = org.mhh.domain.ModerationState.REPORTED order by link.id")
+    java.util.List<String> reportedCodes(org.springframework.data.domain.Pageable page);
     boolean existsByShortCode(String shortCode);
     Optional<Url> findByOriginalUrl(String originalUrl);
 }

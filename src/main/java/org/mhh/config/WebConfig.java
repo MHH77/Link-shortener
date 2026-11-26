@@ -7,6 +7,17 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 @Configuration
 public class WebConfig implements WebMvcConfigurer {
+    private final WriteQuota writeQuota;
+
+    public WebConfig(WriteQuota writeQuota) {
+        this.writeQuota = writeQuota;
+    }
+
+    @Override
+    public void addInterceptors(org.springframework.web.servlet.config.annotation.InterceptorRegistry registry) {
+        registry.addInterceptor(writeQuota).addPathPatterns("/api/v1/urls", "/api/v1/urls/*/reports");
+    }
+
     @Override
     public void addCorsMappings(CorsRegistry registry) {
         registry.addMapping("/api/**")

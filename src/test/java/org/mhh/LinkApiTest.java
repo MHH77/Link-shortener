@@ -12,13 +12,35 @@ import java.time.ZonedDateTime;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-@SpringBootTest(properties = {"spring.datasource.url=jdbc:h2:mem:link-api", "spring.jpa.hibernate.ddl-auto=create-drop"})
+@SpringBootTest(properties = {"spring.datasource.url=jdbc:h2:mem:link-api", "spring.jpa.hibernate.ddl-auto=create-drop",
+        "app.moderation-token=test-moderator"})
 @AutoConfigureMockMvc
 class LinkApiTest {
     @Autowired MockMvc api;
     @Autowired UrlRepository links;
     private static final String ROOT = "/api/v1/urls";
     private static final String TOKEN = "X-Management-Token";
+
+    @Test void moderatorCanDisableAndRestoreReportedLink() throws Exception {
+        String path = "/api/v1/moderation/links/@review";
+        String queue = "/api/v1/moderation/reports";
+        String header = "X-Moderator-Token";
+        api.perform(post(ROOT).contentType(MediaType.APPLICATION_JSON)
+                .content("{\"originalUrl\":\"https://example.org/review\",\"alias\":\"review\"}"))
+                .andExpect(status().isCreated());
+        for (int repeat = 0; repeat < 2; repeat++)
+            api.perform(post(ROOT + "/@review/reports")).andExpect(status().isAccepted());
+        api.perform(get(queue)).andExpect(status().isForbidden());
+        api.perform(get(queue).header(header, "test-moderator")).andExpect(content().json("[\"@review\"]", true));
+        api.perform(put(path).param("disabled", "true")).andExpect(status().isForbidden());
+        api.perform(get("/@review")).andExpect(status().isFound());
+        api.perform(put(path).header(header, "test-moderator").param("disabled", "true")).andExpect(status().isNoContent());
+        api.perform(get("/@review")).andExpect(status().isGone());
+        api.perform(get(ROOT + "/@review")).andExpect(jsonPath("$.clickCount").value(1));
+        api.perform(get(queue).header(header, "test-moderator")).andExpect(content().json("[]", true));
+        api.perform(put(path).header(header, "test-moderator").param("disabled", "false")).andExpect(status().isNoContent());
+        api.perform(get("/@review")).andExpect(status().isFound());
+    }
 
     @Test void creatorControlsAliasAndPublicReadsDoNotRevealToken() throws Exception {
         String destination = "https://example.org/guide";
