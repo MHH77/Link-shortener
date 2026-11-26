@@ -7,6 +7,7 @@ import org.mhh.exception.DuplicateUrlException;
 import org.mhh.exception.LinkExpiredException;
 import org.mhh.exception.UrlNotFoundException;
 import org.mhh.service.UrlService;
+import org.mhh.service.ClickTrackingService;
 import org.mhh.domain.Url;
 import org.mhh.repository.UrlRepository;
 import org.mhh.util.Base62Encoder;
@@ -23,6 +24,7 @@ import java.util.Optional;
 public class UrlServiceImpl implements UrlService {
 
     private final UrlRepository urlRepository;
+    private final ClickTrackingService clickTrackingService;
 
     @Value("${url-shortener.id-offset}")
     private long idOffset;
@@ -58,7 +60,7 @@ public class UrlServiceImpl implements UrlService {
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional
     public String getOriginalUrlAndTrackClick(String shortCode) {
         Url url = findByShortCode(shortCode);
 
@@ -67,11 +69,7 @@ public class UrlServiceImpl implements UrlService {
             throw new LinkExpiredException("This link has expired on " + url.getExpirationDate());
         }
 
-        url.setClickCount(url.getClickCount() + 1);
-        urlRepository.save(url);
-
-        log.info("Redirecting short code '{}' to '{}'. Total clicks: {}",
-                shortCode, url.getOriginalUrl(), url.getClickCount());
+        clickTrackingService.trackClick(url.getId());
 
         return url.getOriginalUrl();
     }
