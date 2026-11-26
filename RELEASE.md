@@ -6,7 +6,7 @@ storage. The following are release gates, in dependency order.
 | Next change | Acceptance check |
 | --- | --- |
 | Rehearse the upgrade on deployment data | Restore a backup to a separate directory and follow the migration procedure below. |
-| Automate builds and API compatibility checks | CI on Windows runs the full Maven suite (including recovery); publish a versioned artifact only on success. |
+| Verify hosted CI | The Windows workflow must pass on GitHub before releasing; download the JAR from the successful run for the chosen commit. |
 | Add operational metrics | Measure redirect latency, 4xx/5xx rates, throttled writes, and pending reports without URL, token or client identifiers as metric labels. Exercise alerts in staging. |
 | Establish production operations | Configure TLS, trusted ingress, moderator secret rotation, off-host encrypted backups, retention and a recurring restore drill. Record recovery time and accepted data loss. |
 | Introduce account-based moderation if needed | Replace the shared token with roles and record the responsible moderator in a persistent audit history. |
@@ -14,6 +14,12 @@ storage. The following are release gates, in dependency order.
 
 Multi-instance deployment is a separate milestone: move both quota enforcement
 and persistence to shared services and repeat the concurrency and failure tests.
+
+To reproduce CI locally on Windows with Java 17 and Maven, run
+`mvn clean verify` followed by `.\ops\Test-PackagedApp.ps1`. The smoke test
+starts the executable JAR on a temporary loopback port with in-memory H2.
+It checks health, creates a link, follows the local short path without visiting
+the destination, verifies one click, and stops its Java process.
 
 ## Adopting an existing H2 database
 
