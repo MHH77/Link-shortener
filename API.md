@@ -8,6 +8,7 @@ directory on persistent storage. Run the integration tests with `mvn test`.
 | --- | --- |
 | POST /api/v1/urls | Creates a short link (201). Save the response header `X-Management-Token`; it is returned only once. |
 | GET /{code} | Redirects (302) and increments the click count. An expired link returns 410. |
+| HEAD /{code} | Returns the redirect location and checks expiry and moderation without counting a click. |
 | GET /api/v1/urls/{code} | Returns the destination, expiration and click count without counting a visit. |
 | DELETE /api/v1/urls/{code} | Requires the creation token in `X-Management-Token`. Returns 204 on success, 403 for an invalid token, or 404 for an unknown code. |
 

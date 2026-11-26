@@ -1,0 +1,3 @@
+CREATE UNIQUE INDEX IF NOT EXISTS ux_url_destination ON url(original_url);
+ALTER TABLE url ADD COLUMN IF NOT EXISTS management_token_hash VARCHAR(64);
+ALTER TABLE url ADD COLUMN IF NOT EXISTS moderation_state ENUM('ACTIVE', 'DISABLED', 'REPORTED');

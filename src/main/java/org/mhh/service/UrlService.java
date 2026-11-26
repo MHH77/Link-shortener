@@ -14,5 +14,7 @@ public interface UrlService {
 
     String getOriginalUrlAndTrackClick(String shortCode);
 
+    String previewDestination(String shortCode);
+
     void deleteByShortCode(String shortCode, String managementToken);
 }

@@ -5,7 +5,7 @@ storage. The following are release gates, in dependency order.
 
 | Next change | Acceptance check |
 | --- | --- |
-| Version the database schema | Back up a previous release, migrate a copy with real data, verify redirects and counts, then replace automatic schema updates with validation. |
+| Rehearse the upgrade on deployment data | Restore a backup to a separate directory and follow the migration procedure below. |
 | Automate builds and API compatibility checks | CI on Windows runs the full Maven suite (including recovery); publish a versioned artifact only on success. |
 | Add operational metrics | Measure redirect latency, 4xx/5xx rates, throttled writes, and pending reports without URL, token or client identifiers as metric labels. Exercise alerts in staging. |
 | Establish production operations | Configure TLS, trusted ingress, moderator secret rotation, off-host encrypted backups, retention and a recurring restore drill. Record recovery time and accepted data loss. |
@@ -14,6 +14,25 @@ storage. The following are release gates, in dependency order.
 
 Multi-instance deployment is a separate milestone: move both quota enforcement
 and persistence to shared services and repeat the concurrency and failure tests.
+
+## Adopting an existing H2 database
+
+New installations run Flyway automatically. Hibernate validates the result on
+startup. Existing installations without Flyway history deliberately refuse
+to start until an operator approves adoption:
+
+1. Stop the old application, take a backup, and restore a rehearsal copy.
+2. Verify the copy has the expected legacy URL table (identity primary key,
+   unique short code, destination, expiration, click count). Check for duplicate
+   destinations with `SELECT original_url, COUNT(*) FROM url GROUP BY original_url HAVING COUNT(*) > 1`.
+   Resolve any duplicates explicitly before upgrading; no migration deletes links.
+3. Point the new application at the copy with `IFEXISTS=TRUE` in its JDBC URL.
+   Set `SPRING_FLYWAY_BASELINEONMIGRATE=true` **only for the first start**.
+   Version 1 represents the legacy table. Subsequent migrations retain existing
+   tokens, moderation state and counts. Remove the environment override.
+4. Restart, verify a known destination, redirect, click count and moderation
+   state. Repeat on production only after the rehearsal passes. If a migration
+   fails, stop and restore the backup before retrying on a fresh copy.
 
 ## Offline H2 recovery on Windows
 

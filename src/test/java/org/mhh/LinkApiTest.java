@@ -12,7 +12,7 @@ import java.time.ZonedDateTime;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-@SpringBootTest(properties = {"spring.datasource.url=jdbc:h2:mem:link-api", "spring.jpa.hibernate.ddl-auto=create-drop",
+@SpringBootTest(properties = {"spring.datasource.url=jdbc:h2:mem:link-api",
         "app.moderation-token=test-moderator"})
 @AutoConfigureMockMvc
 class LinkApiTest {
@@ -36,6 +36,7 @@ class LinkApiTest {
         api.perform(get("/@review")).andExpect(status().isFound());
         api.perform(put(path).header(header, "test-moderator").param("disabled", "true")).andExpect(status().isNoContent());
         api.perform(get("/@review")).andExpect(status().isGone());
+        api.perform(head("/@review")).andExpect(status().isGone());
         api.perform(get(ROOT + "/@review")).andExpect(jsonPath("$.clickCount").value(1));
         api.perform(get(queue).header(header, "test-moderator")).andExpect(content().json("[]", true));
         api.perform(put(path).header(header, "test-moderator").param("disabled", "false")).andExpect(status().isNoContent());
@@ -49,6 +50,8 @@ class LinkApiTest {
                 .andExpect(status().isCreated()).andExpect(header().exists(TOKEN))
                 .andExpect(jsonPath("$.shortUrl").value("http://localhost:7070/@guide"))
                 .andReturn().getResponse().getHeader(TOKEN);
+        api.perform(head("/@guide")).andExpect(status().isFound()).andExpect(redirectedUrl(destination))
+                .andExpect(header().string("Cache-Control", "no-store")).andExpect(content().string(""));
         api.perform(get("/@guide")).andExpect(status().isFound()).andExpect(redirectedUrl(destination));
         api.perform(get(ROOT + "/@guide")).andExpect(status().isOk())
                 .andExpect(jsonPath("$.originalUrl").value(destination))

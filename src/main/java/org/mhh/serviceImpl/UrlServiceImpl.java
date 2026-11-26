@@ -105,6 +105,18 @@ public class UrlServiceImpl implements UrlService {
     @Override
     @Transactional
     public String getOriginalUrlAndTrackClick(String shortCode) {
+        Url url = activeLink(shortCode);
+        clickTrackingService.trackClick(url.getId());
+        return url.getOriginalUrl();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public String previewDestination(String shortCode) {
+        return activeLink(shortCode).getOriginalUrl();
+    }
+
+    private Url activeLink(String shortCode) {
         Url url = findByShortCode(shortCode);
 
         if (url.getModerationState() == org.mhh.domain.ModerationState.DISABLED) {
@@ -115,9 +127,7 @@ public class UrlServiceImpl implements UrlService {
             throw new LinkExpiredException("This link has expired on " + url.getExpirationDate());
         }
 
-        clickTrackingService.trackClick(url.getId());
-
-        return url.getOriginalUrl();
+        return url;
     }
 
     @Override

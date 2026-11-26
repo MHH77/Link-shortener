@@ -10,6 +10,8 @@ import org.mhh.service.UrlService;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 
 import java.io.IOException;
 
@@ -36,6 +38,16 @@ public class RedirectController {
 
         String originalUrl = urlService.getOriginalUrlAndTrackClick(shortCode);
 
-        httpServletResponse.sendRedirect(originalUrl);
+        sendRedirect(httpServletResponse, originalUrl);
+    }
+
+    @RequestMapping(value = "/{shortCode}", method = RequestMethod.HEAD)
+    public void preview(@PathVariable String shortCode, HttpServletResponse response) throws IOException {
+        sendRedirect(response, urlService.previewDestination(shortCode));
+    }
+
+    private void sendRedirect(HttpServletResponse response, String destination) throws IOException {
+        response.setHeader("Cache-Control", "no-store");
+        response.sendRedirect(destination);
     }
 }
