@@ -2,6 +2,7 @@ package org.mhh.service;
 
 import org.mhh.domain.Url;
 import org.mhh.dto.CreateUrlRequest;
+import org.mhh.dto.UpdateUrlRequest;
 
 
 public interface UrlService {
@@ -15,6 +16,8 @@ public interface UrlService {
     String getOriginalUrlAndTrackClick(String shortCode);
 
     String previewDestination(String shortCode);
+
+    Url updateByShortCode(String shortCode, String managementToken, UpdateUrlRequest request);
 
     void deleteByShortCode(String shortCode, String managementToken);
 }

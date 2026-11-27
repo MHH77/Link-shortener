@@ -3,6 +3,7 @@ package org.mhh.serviceImpl;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.mhh.dto.CreateUrlRequest;
+import org.mhh.dto.UpdateUrlRequest;
 import org.mhh.exception.DuplicateUrlException;
 import org.mhh.exception.LinkExpiredException;
 import org.mhh.exception.UrlNotFoundException;
@@ -68,12 +69,16 @@ public class UrlServiceImpl implements UrlService {
             log.info("event=link_created linkId={} customAlias={}", savedUrl.getId(), request.getAlias() != null);
             return new CreatedLink(savedUrl, token);
         } catch (DataIntegrityViolationException ex) {
-            if (ex.getMostSpecificCause() instanceof java.sql.SQLException sql
-                    && "23505".equals(sql.getSQLState())) {
-                throw new DuplicateUrlException("That destination or alias is already in use.");
-            }
-            throw ex;
+            throw duplicateOrOriginal(ex);
         }
+    }
+
+    private static RuntimeException duplicateOrOriginal(DataIntegrityViolationException ex) {
+        if (ex.getMostSpecificCause() instanceof java.sql.SQLException sql
+                && "23505".equals(sql.getSQLState())) {
+            return new DuplicateUrlException("That destination or alias is already in use.");
+        }
+        return ex;
     }
 
     private static void validateDestination(String value) {
@@ -132,12 +137,48 @@ public class UrlServiceImpl implements UrlService {
 
     @Override
     @Transactional
+    public Url updateByShortCode(String shortCode, String token, UpdateUrlRequest request) {
+        Url url = findByShortCode(shortCode);
+        requireOwner(url, token);
+        String destination = request.getOriginalUrl();
+        boolean changesExpiration = request.getExpirationDate() != null || request.isClearExpiration();
+        if (destination == null && !changesExpiration) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Provide a new destination or an expiration change.");
+        }
+        if (request.getExpirationDate() != null && request.isClearExpiration()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Set an expiration date or clear it, not both.");
+        }
+        if (destination != null && !destination.equals(url.getOriginalUrl())) {
+            validateDestination(destination);
+            if (urlRepository.findByOriginalUrl(destination).isPresent()) {
+                throw new DuplicateUrlException("That destination or alias is already in use.");
+            }
+            url.setOriginalUrl(destination);
+        }
+        if (changesExpiration) {
+            url.setExpirationDate(request.getExpirationDate());
+        }
+        try {
+            Url savedUrl = urlRepository.saveAndFlush(url);
+            log.info("event=link_updated linkId={}", savedUrl.getId());
+            return savedUrl;
+        } catch (DataIntegrityViolationException ex) {
+            throw duplicateOrOriginal(ex);
+        }
+    }
+
+    @Override
+    @Transactional
     public void deleteByShortCode(String shortCode, String token) {
         Url url = findByShortCode(shortCode);
+        requireOwner(url, token);
+        urlRepository.delete(url);
+        log.info("event=link_deleted linkId={}", url.getId());
+    }
+
+    private static void requireOwner(Url url, String token) {
         if (token == null || !hashToken(token).equals(url.getManagementTokenHash())) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "A valid management token is required.");
         }
-        urlRepository.delete(url);
-        log.info("event=link_deleted linkId={}", url.getId());
     }
 }

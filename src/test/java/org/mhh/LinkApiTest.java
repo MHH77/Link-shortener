@@ -43,6 +43,40 @@ class LinkApiTest {
         api.perform(get("/@review")).andExpect(status().isFound());
     }
 
+    @Test void ownerUpdatesDestinationAndExpiry() throws Exception {
+        String link = ROOT + "/@edit";
+        String token = api.perform(post(ROOT).contentType(MediaType.APPLICATION_JSON)
+                .content("{\"originalUrl\":\"https://example.org/edit-old\",\"alias\":\"edit\"}"))
+                .andExpect(status().isCreated()).andReturn().getResponse().getHeader(TOKEN);
+        api.perform(post(ROOT).contentType(MediaType.APPLICATION_JSON)
+                .content("{\"originalUrl\":\"https://example.org/edit-taken\"}")).andExpect(status().isCreated());
+        String moved = "{\"originalUrl\":\"https://example.org/edit-new\"}";
+        api.perform(patch(link).contentType(MediaType.APPLICATION_JSON).content(moved)).andExpect(status().isForbidden());
+        api.perform(patch(link).header(TOKEN, "wrong").contentType(MediaType.APPLICATION_JSON).content(moved))
+                .andExpect(status().isForbidden());
+        api.perform(patch(link).header(TOKEN, token).contentType(MediaType.APPLICATION_JSON).content(moved))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.originalUrl").value("https://example.org/edit-new"))
+                .andExpect(header().doesNotExist(TOKEN));
+        api.perform(get("/@edit")).andExpect(redirectedUrl("https://example.org/edit-new"));
+        api.perform(patch(link).header(TOKEN, token).contentType(MediaType.APPLICATION_JSON)
+                .content("{\"originalUrl\":\"https://example.org/edit-taken\"}")).andExpect(status().isConflict());
+        for (String body : new String[]{"{}", "{\"originalUrl\":\"ftp://example.org/file\"}",
+                "{\"expirationDate\":\"2000-01-01T00:00:00Z\"}",
+                "{\"expirationDate\":\"2999-01-01T00:00:00Z\",\"clearExpiration\":true}"}) {
+            api.perform(patch(link).header(TOKEN, token).contentType(MediaType.APPLICATION_JSON).content(body))
+                    .andExpect(status().isBadRequest());
+        }
+        api.perform(patch(link).header(TOKEN, token).contentType(MediaType.APPLICATION_JSON)
+                .content("{\"expirationDate\":\"2999-01-01T00:00:00Z\"}"))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.expirationDate").isNotEmpty())
+                .andExpect(jsonPath("$.originalUrl").value("https://example.org/edit-new"));
+        api.perform(patch(link).header(TOKEN, token).contentType(MediaType.APPLICATION_JSON)
+                .content("{\"clearExpiration\":true}"))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.expirationDate").isEmpty());
+        api.perform(patch(ROOT + "/missing").header(TOKEN, token).contentType(MediaType.APPLICATION_JSON).content(moved))
+                .andExpect(status().isNotFound());
+    }
+
     @Test void creatorControlsAliasAndPublicReadsDoNotRevealToken() throws Exception {
         String destination = "https://example.org/guide";
         String token = api.perform(post(ROOT).contentType(MediaType.APPLICATION_JSON)

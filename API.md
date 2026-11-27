@@ -11,6 +11,7 @@ directory on persistent storage. Run the integration tests with `mvn test`.
 | HEAD /{code} | Returns the redirect location and checks expiry and moderation without counting a click. |
 | GET /api/v1/urls/{code} | Returns the destination, expiration and click count without counting a visit. |
 | DELETE /api/v1/urls/{code} | Requires the creation token in `X-Management-Token`. Returns 204 on success, 403 for an invalid token, or 404 for an unknown code. |
+| PATCH /api/v1/urls/{code} | Requires `X-Management-Token`. Changes the destination with `originalUrl`, sets a future `expirationDate`, or removes the expiry with `"clearExpiration":true`. Returns the updated link (200), 400 for an empty or invalid change, 403, 404, or 409 when the destination is already shortened. The short code, click count and moderation state are kept. |
 
 Example creation body: `{"originalUrl":"https://example.org/guide","alias":"guide"}`.
 This produces `/@guide`. Omit `alias` for an automatically generated code.

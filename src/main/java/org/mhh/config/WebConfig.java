@@ -23,7 +23,7 @@ public class WebConfig implements WebMvcConfigurer {
         registry.addMapping("/api/**")
                 .allowedOrigins("http://localhost:3000") // آدرس React
                 .exposedHeaders("X-Management-Token")
-                .allowedMethods("GET", "POST", "DELETE", "OPTIONS");
+                .allowedMethods("GET", "POST", "PATCH", "DELETE", "OPTIONS");
     }
 
     @Override

@@ -11,6 +11,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.mhh.domain.Url;
 import org.mhh.dto.CreateUrlRequest;
+import org.mhh.dto.UpdateUrlRequest;
 import org.mhh.dto.UrlResponse;
 import org.mhh.mapper.UrlMapper;
 import org.mhh.service.UrlService;
@@ -66,6 +67,26 @@ public class UrlManagementController {
             @PathVariable String shortCode) {
 
         Url url = urlService.findByShortCode(shortCode);
+
+        return ResponseEntity.ok(buildUrlResponse(url));
+    }
+
+    @PatchMapping("/{shortCode}")
+    @Operation(summary = "Update a short URL", description = "Changes the destination or expiration of a link. Requires the management token.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Short URL updated successfully",
+                    content = @Content(schema = @Schema(implementation = UrlResponse.class))),
+            @ApiResponse(responseCode = "403", description = "Missing or invalid management token"),
+            @ApiResponse(responseCode = "404", description = "Short code not found"),
+            @ApiResponse(responseCode = "409", description = "Destination already shortened")
+    })
+    public ResponseEntity<UrlResponse> updateShortUrl(
+            @Parameter(description = "The short code to update", required = true)
+            @PathVariable String shortCode,
+            @RequestHeader(value = "X-Management-Token", required = false) String token,
+            @Valid @RequestBody UpdateUrlRequest request) {
+
+        Url url = urlService.updateByShortCode(shortCode, token, request);
 
         return ResponseEntity.ok(buildUrlResponse(url));
     }
